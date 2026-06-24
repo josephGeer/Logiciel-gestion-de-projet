@@ -38,7 +38,6 @@ namespace app_test.Pages
         public PageSelectedProjet()
         {
             SelectedProjet = new Projet();
-            LoadItems();
             InitializeComponent();
 
             this.KeyDown += PageSelectedProjet_KeyDown;
@@ -57,88 +56,29 @@ namespace app_test.Pages
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            if (e.Parameter is String ProjectName)
+            if (e.Parameter is Projet projet_1)
             {
-                Debug.WriteLine("L'objet passé en paramètre à le nom : " + ProjectName);
-                //Là on récup l'objet projet
-                var projet = await RecupObjetProjet(ProjectName);
-                //On assigne le projet à SelectedProjet pour mettre à jour l'UI
-                this.SelectedProjet = projet;
-
-                Debug.WriteLine("L'objet a été récupéré vérifions les informations : " + SelectedProjet.Name + SelectedProjet.Description + SelectedProjet.Deadline);
-                if (this.SelectedProjet == null)
+                if (projet_1 != null)
                 {
-                    Debug.WriteLine("ERREUR : Le projet n'a pas été chargé !");
-                    return;
-                }
+                    SelectedProjet = projet_1;
 
-                if (SelectedProjet?.Items != null)
-                {
-                    foreach (var item in SelectedProjet.Items)
+                    Debug.WriteLine("L'objet a été récupéré vérifions les informations : " + SelectedProjet.Name + SelectedProjet.Description + SelectedProjet.Deadline);
+
+                    if (SelectedProjet?.Items != null)
                     {
-                        if (item is Texte itemTexte && File.Exists(itemTexte.Source))
+                        foreach (var item in SelectedProjet.Items)
                         {
-                            itemTexte.Contenu = await File.ReadAllTextAsync(itemTexte.Source);
+                            if (item is Texte itemTexte && File.Exists(itemTexte.Source))
+                            {
+                                itemTexte.Contenu = await File.ReadAllTextAsync(itemTexte.Source);
+                            }
                         }
                     }
                 }
-                //Permet de mettre à jour la liste d'items du projet, car sinon projet est vide et item aussi
-                //A voir car si j'ai ObservableCollecction c'est peut etre pas utile
-                //this.Bindings.Update();
+
             }
         }
-        
-        //Permet de récupérer l'objet à partir de son nom depuis le fichier JSON correspondant.
-        private async Task<Projet?> RecupObjetProjet(string name)
-        {
-            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-            string dossier = Path.Combine(localFolder.Path, "BDD", "Projet");
-
-            if (!Directory.Exists(dossier))
-            {
-                Debug.WriteLine("dossier existe pas");
-                return null;
-            }
-
-            //Le *.json sert a filtré pour n'avoir que les fichiers JSON
-            string[]files = Directory.GetFiles(dossier, "*.json");
-            foreach (string file in files)
-            {
-                string fileNameOnly = Path.GetFileNameWithoutExtension(file);
-
-                if (fileNameOnly == name)
-                {
-                    Debug.WriteLine($"\n Lecture du fichier : " + file);
-                    try
-                    {
-                        string jsonContent = await System.IO.File.ReadAllTextAsync(file);
-                        return DeserializedJSON(jsonContent);
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Erreur : {ex.Message}");
-                    }
-                }
-            }
-            return null;
-        }
-        private Projet? DeserializedJSON(string ProjetJSON)
-        {
-            var options = new JsonSerializerOptions
-            {
-                // Cette option permet de gérer les types dérivés (Texte, Image, Video)
-                // dans une liste de type base (Item)
-                WriteIndented = true
-            };
-            return JsonSerializer.Deserialize<Projet>(ProjetJSON, options);
-        }
-
-        public void LoadItems()
-        {
-            Debug.WriteLine("LoadItem est appellé en attente du chargement des données ...");
-        }
-
+       
         // Cette méthode va être appelée automatiquement par le x:Bind du MediaPlayerElement
         public static Windows.Media.Playback.IMediaPlaybackSource MettreEnMediaSource(string cheminFichier)
         {

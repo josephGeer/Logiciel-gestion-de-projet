@@ -17,8 +17,11 @@
     <Grid>
 
         <NavigationView
+            x:Name="NavView"
             PaneDisplayMode="Top"
-            SelectionChanged="NavigationView_SelectionChanged">
+            SelectionChanged="NavigationView_SelectionChanged"
+            BackRequested="navigateBackButton_Click"
+            IsBackButtonVisible="Auto">
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Projets" Tag="Projets"/>
                 <NavigationViewItem Content="Paramètres" Tag="Parametres"/>
@@ -27,7 +30,6 @@
 
             <Frame x:Name="ContentFrame"/>
         </NavigationView>
-
     </Grid>
 
 </Window>

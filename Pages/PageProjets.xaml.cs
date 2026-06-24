@@ -29,10 +29,12 @@ namespace app_test.Pages
             GetAllProjects();
         }
 
-        private  Projet? DeserializedJSON(string ProjetJSON)
+        private Projet? DeserializedJSON(string json)
         {
-            Projet? Projet = JsonSerializer.Deserialize<Projet>(ProjetJSON);
-            return Projet;
+            var options = new JsonSerializerOptions
+            {
+            };
+            return JsonSerializer.Deserialize<Projet>(json, options);
         }
 
         private async Task GetAllProjects()
@@ -168,7 +170,7 @@ namespace app_test.Pages
 
             if (projet != null)
             {
-                this.Frame.Navigate(typeof(PageSelectedProjet), projet.Name);
+                this.Frame.Navigate(typeof(PageSelectedProjet), projet);
             }
         }
 

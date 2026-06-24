@@ -37,6 +37,15 @@ namespace app_test
         public MainWindow()
         {
             InitializeComponent();
+            //S'avbonne à ContentFrame_Navigated; / à chauqe fois que je navigue ça execute la fonction
+            ContentFrame.Navigated += ContentFrame_Navigated;
+            ContentFrame.Navigate(typeof(PageProjets));
+
+        }
+        //Permet d'évaluer si le NavView.IsBackEnabled est vrai ou faux, en évaluant le ContentFrame.CanGoBack
+        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            NavView.IsBackEnabled = ContentFrame.CanGoBack;
         }
         private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
@@ -52,6 +61,28 @@ namespace app_test
                 case "Parametres":
                     ContentFrame.Navigate(typeof(PageSelectedProjet));
                     break;
+            }
+        }
+        private void navigateBackButton_Click(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            if (ContentFrame.CanGoBack)
+            {
+                ContentFrame.GoBack();
+
+                //NavUpdate();
+            }
+        }
+        //sert à mettre à update l'UI du menu lors du changement de page
+        private void NavUpdate()
+        {
+            var pageActuelle = ContentFrame.CurrentSourcePageType;
+            if (pageActuelle == typeof(PageProjets))
+            {
+                NavView.SelectedItem = NavView.MenuItems[0]; 
+            }
+            else if (pageActuelle == typeof(PageSelectedProjet)) 
+            {
+                NavView.SelectedItem = NavView.MenuItems[1];
             }
         }
     }
