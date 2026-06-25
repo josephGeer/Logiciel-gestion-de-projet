@@ -314,5 +314,18 @@ namespace app_test.Pages
             await Projet.CreateProjetFileJSON(SelectedProjet);
             Debug.WriteLine("[Delete] Fichier JSON du projet mis à jour.");
         }
+
+        //La gestion de l'index est propre dans le liste view et dans la liste d'items, donc pas besoin de noter la position
+        private async void ItemGridView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+        {
+            if (SelectedProjet != null)
+            {
+                Debug.WriteLine("[DragAndDrop] L'ordre des éléments a changé. Sauvegarde du fichier JSON...");
+                await Projet.CreateProjetFileJSON(SelectedProjet);
+                Debug.WriteLine("[DragAndDrop] Fichier JSON mis à jour avec le nouvel ordre.");
+            }
+        }
     }
+
+
 }

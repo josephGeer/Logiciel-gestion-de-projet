@@ -10,96 +10,83 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:controls="using:CommunityToolkit.WinUI.Controls" 
     mc:Ignorable="d">
-    
+
     <Grid>
         <Grid.Resources>
-            <!-- Là on crée un DataTemplate pour les éléments de notre GridView -->
             <DataTemplate x:Key="TexteTemplate" x:DataType="modeles_2:Texte">
-                <Grid Width="900" Margin="8">
+                <Grid Width="600" Margin="8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-
-                    <TextBox Grid.Row="0"
-                 Text="{x:Bind Contenu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 AutomationProperties.Name="multi-line TextBox"
-                 TextWrapping="Wrap" 
-                 AcceptsReturn="True" 
-                 IsSpellCheckEnabled="True"
-                 HorizontalAlignment="Stretch" />
-
-                    <Button Grid.Row="1" 
-                Click="DeleteItem_Click" 
-                Margin="10,5,0,0" 
-                Background="Transparent">
+                    <TextBox Grid.Row="0" Text="{x:Bind Contenu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" IsSpellCheckEnabled="True" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="1" Click="DeleteItem_Click" Margin="10,5,0,0" Background="Transparent">
                         <SymbolIcon Symbol="Delete" Foreground="Red"/>
                     </Button>
                 </Grid>
             </DataTemplate>
 
-            <DataTemplate x:Key="DessinTemplate">
-                
-            </DataTemplate>
+            <DataTemplate x:Key="DessinTemplate"></DataTemplate>
+
             <DataTemplate x:Key="VideoTemplate" x:DataType="modeles:Item">
                 <StackPanel>
-                    <MediaPlayerElement 
-                        x:Name ="TargetMedia"
-                        Source="{x:Bind local:PageSelectedProjet.MettreEnMediaSource(Source), Mode=OneWay}"
-                        MaxWidth="400"
-                        AutoPlay="False"
-                        AreTransportControlsEnabled="True" />
+                    <MediaPlayerElement x:Name ="TargetMedia" 
+                                        Source="{x:Bind local:PageSelectedProjet.MettreEnMediaSource(Source), Mode=OneWay}" 
+                                        MaxWidth="800" 
+                                        AutoPlay="False" 
+                                        AreTransportControlsEnabled="True" 
+                                        Stretch="Uniform"/>
                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0" Spacing="10">
                         <Button Content="Open File" Tag="Video" Click="OpenFileButton_Click"/>
-
                         <Button Click="DeleteItem_Click" Background="Transparent">
                             <SymbolIcon Symbol="Delete" Foreground="Red"/>
                         </Button>
                     </StackPanel>
                 </StackPanel>
             </DataTemplate>
+
             <DataTemplate x:Key="ImageTemplate" x:DataType="modeles:Item">
                 <StackPanel>
-                    <Image Height="100" 
-                        x:Name="TargetMedia"
-                        Source="{x:Bind Source, Mode=OneWay}"/>
+                    <Image x:Name="TargetMedia"
+                           Source="{x:Bind Source, Mode=OneWay}"
+                           Stretch="Uniform"
+                           MaxWidth="500    "/>
                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0" Spacing="10">
                         <Button Content="Open File" Tag="Image" Click="OpenFileButton_Click"/>
-
                         <Button Click="DeleteItem_Click" Background="Transparent">
                             <SymbolIcon Symbol="Delete" Foreground="Red"/>
                         </Button>
                     </StackPanel>
                 </StackPanel>
             </DataTemplate>
-            <DataTemplate x:Key="AudioTemplate">
 
-            </DataTemplate>
+            <DataTemplate x:Key="AudioTemplate"></DataTemplate>
 
-            <local:ItemTemplateSelector x:Key="ItemSelectorTemplate"
-                TexteTemplate="{StaticResource TexteTemplate}"
-                DessinTemplate="{StaticResource DessinTemplate}"
-                VideoTemplate="{StaticResource VideoTemplate}" 
-                ImageTemplate="{StaticResource ImageTemplate}"
-                AudioTemplate="{StaticResource AudioTemplate}"/>
+            <local:ItemTemplateSelector x:Key="ItemSelectorTemplate" 
+                                        TexteTemplate="{StaticResource TexteTemplate}" 
+                                        DessinTemplate="{StaticResource DessinTemplate}" 
+                                        VideoTemplate="{StaticResource VideoTemplate}" 
+                                        ImageTemplate="{StaticResource ImageTemplate}" 
+                                        AudioTemplate="{StaticResource AudioTemplate}"/>
 
-
-            <Style x:Key="ItemGridView_ItemContainerStyle"
-                TargetType="GridViewItem">
-                <Setter Property="Background" Value="Gray"/>
+            <Style x:Key="ItemGridView_ItemContainerStyle" TargetType="ListViewItem">
+                <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Margin" Value="8"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
             </Style>
-
         </Grid.Resources>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-    
-        <Grid Grid.Row="0" x:Name="ButtonItemCreate"
-            Height="50"
-            Margin="10">
+
+        <Grid Grid.Row="0" Grid.Column="0" x:Name="ButtonItemCreate" Height="50" Margin="10">
             <StackPanel>
                 <DropDownButton Content="Create Item">
                     <DropDownButton.Flyout>
@@ -115,13 +102,24 @@
             </StackPanel>
         </Grid>
 
-        <!-- Ici on va afficher les items sous forme de liste comme Jupyther, on passe en binding le SelectedProjet.Items, donc tous les items en gros-->
-        <ListView Grid.Row="1" x:Name="ItemGridView"
+        <ListView Grid.Row="1" Grid.Column="0" x:Name="ItemGridView"
             ItemTemplateSelector="{StaticResource ItemSelectorTemplate}"
             ItemContainerStyle="{StaticResource ItemGridView_ItemContainerStyle}"
             ItemsSource="{x:Bind SelectedProjet.Items,Mode=OneWay}"
-            Margin= "100">
+            HorizontalAlignment="Stretch" 
+            Margin="10"
+            CanReorderItems="True"
+            AllowDrop="True"
+            CanDragItems="True"
+            DragItemsCompleted="ItemGridView_DragItemsCompleted">
         </ListView>
-        
+
+        <Grid Grid.Row="1" Grid.Column="1" Background="LightGray" Margin="10">
+            <TextBlock Text="Espace de droite (25%)" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Style="{ThemeResource BodyTextBlockStyle}"/>
+        </Grid>
+
     </Grid>
 </Page>
