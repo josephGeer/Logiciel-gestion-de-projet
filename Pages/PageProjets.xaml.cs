@@ -39,18 +39,21 @@ namespace app_test.Pages
 
         private async Task GetAllProjects()
         {
-            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-            string dossier = Path.Combine(localFolder.Path, "BDD", "Projet");
+            // 1. On utilise Environment au lieu de ApplicationData
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string dossier = Path.Combine(localAppData, "MonAppTest", "BDD", "Projet");
 
             if (!Directory.Exists(dossier))
             {
-                Debug.WriteLine("dossier existe pas");
+                Debug.WriteLine("Le dossier n'existe pas encore");
                 return;
             }
 
-            //Le *.json sert a filtré pour n'avoir que les fichiers JSON
+            // 2. On vide la liste avant de la re-remplir pour éviter les doublons à l'écran
+            Projets.Clear();
+
             string[] files = Directory.GetFiles(dossier, "*.json");
-            foreach(string file in files)
+            foreach (string file in files)
             {
                 Debug.WriteLine($"\n lecture du fichier : " + file);
                 try
@@ -58,14 +61,13 @@ namespace app_test.Pages
                     string jsonContent = await System.IO.File.ReadAllTextAsync(file);
                     Projet? projet = DeserializedJSON(jsonContent);
 
-                    if(projet != null)
+                    if (projet != null)
                     {
                         Projets.Add(projet);
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Si un fichier est bloqué ou illisible, on capture l'erreur ici pour ne pas planter la boucle
                     Console.WriteLine($"Erreur lors de la lecture de {file} : {ex.Message}");
                 }
             }
@@ -97,23 +99,29 @@ namespace app_test.Pages
                 string deadlineValue = DeadlineButton.Tag.ToString();
                 int days = int.Parse(deadlineValue);
                 DateTime Deadline = DateTime.Now.AddDays(days);
+
                 Projet projet = new Projet(name, description, Deadline);
 
                 await Projet.CreateProjetFileJSON(projet);
+
+                Projets.Add(projet);
 
                 if (CreateProjectPanel.Visibility == Visibility.Visible)
                 {
                     CreateProjectPanel.Visibility = Visibility.Collapsed;
                     ProjectGridView.Visibility = Visibility.Visible;
-                    GetAllProjects();
+
                 }
 
+                NameInput.Text = string.Empty;
+                DescriptionInput.Text = string.Empty;
+                DeadlineButton.Content = "Chose your Deadline";
+                DeadlineButton.Tag = null;
             }
             else
             {
                 Debug.WriteLine("Lecture de la Deadline ne fonctionne pas");
             }
-            
         }
 
         public void OpenDeletePopUp(object sender, RoutedEventArgs e)
@@ -147,21 +155,31 @@ namespace app_test.Pages
         }
         public void DeleteProject(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("DeleteProject button  called");
-            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-            string dossier = Path.Combine(localFolder.Path, "BDD", "Projet");
+            Debug.WriteLine("DeleteProject button called");
+
+            // 1. On utilise Environment au lieu de ApplicationData
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string dossier = Path.Combine(localAppData, "MonAppTest", "BDD", "Projet");
 
             var button = sender as Button;
             Projet projet = button.DataContext as Projet;
-            Debug.WriteLine("to string du projet dans fonction deleteProject : " + projet);
+
+            if (projet == null) return; // Sécurité
 
             string fullPath = Path.Combine(dossier, projet.Name + ".json");
             Debug.WriteLine("Chemin utilisé pour supression du fichier : " + fullPath);
 
-            System.IO.File.Delete(fullPath);
-            Debug.WriteLine("Projet supprimé : " + projet.Name);
+            // 2. On supprime proprement
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+                Debug.WriteLine("Projet supprimé : " + projet.Name);
+            }
+
             Projets.Remove(projet);
 
+            // 3. On ferme la popup (très important !)
+            CloseDeletePopup(sender, e);
         }
         public void OpenProject(object sender, ItemClickEventArgs e)
         {

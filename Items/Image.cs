@@ -9,7 +9,7 @@ namespace app_test.Items
 {
     public class Image : Item
     {
-        public Image(int position, string source) : base(position, source)
+        public Image(string source) : base(source)
         {
 
         }

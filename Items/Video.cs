@@ -9,7 +9,7 @@ namespace app_test.Items
 {
     public class Video : Item
     {
-        public Video(int position, string source) : base(position, source)
+        public Video(string source) : base(source)
         {
 
         }

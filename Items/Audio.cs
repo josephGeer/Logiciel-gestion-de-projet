@@ -8,7 +8,7 @@ namespace app_test.Items
 {
     public class Audio : Item
     {
-        public Audio(int position, string source) : base(position, source)
+        public Audio(string source) : base(source)
         {
 
         }

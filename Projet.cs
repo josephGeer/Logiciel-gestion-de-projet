@@ -64,22 +64,23 @@ namespace app_test
         //option JSON WriteIndented = true permet d'avoir l'écriture indenté plus compréhensible
         public static async Task CreateProjetFileJSON(Projet projet)
         {
-            //Il va falloir à partir du nom du projet, créer le fichier JSON qui va contenir les informations du projet.
             try
             {
-                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-                string dossier = Path.Combine(localFolder.Path, "BDD", "Projet");
+                // 1. On récupère le chemin du dossier classique de Windows (C:\Users\TonNom\AppData\Local)
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+                // 2. On crée un dossier au nom de ton application pour ne pas tout mélanger, puis tes sous-dossiers
+                string dossier = Path.Combine(localAppData, "MonAppTest", "BDD", "Projet");
 
                 if (!Directory.Exists(dossier))
                 {
                     Directory.CreateDirectory(dossier);
                 }
 
-                //création du nom du fichier + création du chemin complettion du chemin complet en concaténant avec le chemin du sossier
+                // La suite ne change pas !
                 string fileName = projet.Name + ".json";
                 string cheminComplet = Path.Combine(dossier, fileName);
 
-                //creation du fichier
                 await using (FileStream createStream = File.Create(cheminComplet))
                 {
                     await JsonSerializer.SerializeAsync(createStream, projet);
@@ -89,7 +90,7 @@ namespace app_test
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e);
+                Debug.WriteLine("ERREUR LORS DE LA CRÉATION : " + e.Message);
             }
         }
     }

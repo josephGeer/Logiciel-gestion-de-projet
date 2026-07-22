@@ -20,7 +20,7 @@ namespace app_test.Items
                 OnPropertyChanged(nameof(Contenu));
             }
         }
-        public Texte(int position, string source) : base(position, source) { }
+        public Texte(string source) : base(source) { }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) =>

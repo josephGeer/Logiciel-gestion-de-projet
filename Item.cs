@@ -19,18 +19,18 @@ namespace app_test
     public class Item
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public int Position { get; set; }
         public string Source { get; set; }
 
-        public Item(int Position, string Source)
+        public double? Largeur { get; set; }
+        public double? Hauteur { get; set; }
+
+        public Item(string Source)
         {
-            this.Position = Position;
             this.Source = Source;
         }
 
         public Item()
         {
-            Position = 0;
             Source = "basique";
         }
     }
