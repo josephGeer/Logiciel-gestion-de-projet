@@ -164,7 +164,7 @@
                                MinWidth="200"
                                DataContextChanged="ItemTarget_DataContextChanged"
                                SizeChanged="ItemTarget_SizeChanged"/>
-                        
+
                         <controls:ContentSizer
                             Orientation="Horizontal"
                             VerticalAlignment="Bottom"
@@ -183,7 +183,7 @@
                             TargetControl="{Binding ElementName=TargetMedia}"
                             PointerPressed="Sizer_PointerPressed" />
                     </Grid>
-                    
+
                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0" Spacing="10">
                         <Button Content="Open File" Tag="Image" Click="OpenFileButton_Click"/>
                         <Button Click="DeleteItem_Click" Background="Transparent">
@@ -224,11 +224,6 @@
             </Style>
         </Grid.Resources>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="1*" />
-        </Grid.ColumnDefinitions>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -248,72 +243,94 @@
                     </DropDownButton.Flyout>
                 </DropDownButton>
             </StackPanel>
+
+            <ToggleButton Grid.Column="1" 
+                          x:Name="BtnToggleGallery" 
+                          IsChecked="{Binding ElementName=GallerySplitView, Path=IsPaneOpen, Mode=TwoWay}"
+                          CornerRadius="4"
+                          HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Pictures" />
+                    <TextBlock Text="Galerie" />
+                </StackPanel>
+            </ToggleButton>
         </Grid>
 
-        <ListView Grid.Row="1" Grid.Column="0" x:Name="ItemGridView"
-            ItemTemplateSelector="{StaticResource ItemSelectorTemplate}"
-            ItemContainerStyle="{StaticResource ItemGridView_ItemContainerStyle}"
-            ItemsSource="{x:Bind SelectedProjet.Items,Mode=OneWay}"
-            HorizontalAlignment="Stretch" 
-            Margin="10"
-            CanReorderItems="True"
-            AllowDrop="True"
-            CanDragItems="True"
-            DragItemsCompleted="ItemGridView_DragItemsCompleted">
-        </ListView>
+        <SplitView Grid.Row="1" 
+                   x:Name="GallerySplitView" 
+                   DisplayMode="Inline" 
+                   PanePlacement="Right" 
+                   OpenPaneLength="350" 
+                   IsPaneOpen="False">
 
-        <!-- A partir d'ici c'est la gestion de la gallerie d'image : -->
-        <Grid Grid.Row="1" Grid.Column="1" Background="LightGray" Margin="10">
-            <Grid x:Name="CollectionsPanel" Visibility="Visible">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <SplitView.Content>
+                <ListView x:Name="ItemGridView"
+                    ItemTemplateSelector="{StaticResource ItemSelectorTemplate}"
+                    ItemContainerStyle="{StaticResource ItemGridView_ItemContainerStyle}"
+                    ItemsSource="{x:Bind SelectedProjet.Items, Mode=OneWay}"
+                    HorizontalAlignment="Stretch" 
+                    Margin="10"
+                    CanReorderItems="True"
+                    AllowDrop="True"
+                    CanDragItems="True"
+                    DragItemsCompleted="ItemGridView_DragItemsCompleted">
+                </ListView>
+            </SplitView.Content>
 
-                <TextBlock Grid.Row="0" Text="Mes Collections" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+            <SplitView.Pane>
+                <Grid Background="LightGray">
+                    <Grid x:Name="CollectionsPanel" Visibility="Visible" Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                <GridView Grid.Row="1" x:Name="CollectionsGridView" 
-                  ItemsSource="{x:Bind ToutesLesCollections, Mode=OneWay}"
-                  IsItemClickEnabled="True"
-                  ItemClick="CollectionsGridView_ItemClick">
-                    <GridView.ItemTemplate>
-                        <DataTemplate x:DataType="modeles_3:Collection">
-                            <StackPanel Width="100" Margin="5" Spacing="4" HorizontalAlignment="Center">
-                                <Image Source="{x:Bind ImageUrl}" Width="80" Height="80" Stretch="UniformToFill"/>
-                                <TextBlock Text="{x:Bind Name}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                        <TextBlock Grid.Row="0" Text="Mes Collections" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+
+                        <GridView Grid.Row="1" x:Name="CollectionsGridView" 
+                                  ItemsSource="{x:Bind ToutesLesCollections, Mode=OneWay}"
+                                  IsItemClickEnabled="True"
+                                  ItemClick="CollectionsGridView_ItemClick">
+                            <GridView.ItemTemplate>
+                                <DataTemplate x:DataType="modeles_3:Collection">
+                                    <StackPanel Width="100" Margin="5" Spacing="4" HorizontalAlignment="Center">
+                                        <Image Source="{x:Bind ImageUrl}" Width="80" Height="80" Stretch="UniformToFill"/>
+                                        <TextBlock Text="{x:Bind Name}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                        </GridView>
+                    </Grid>
+
+                    <Grid x:Name="ObjetsPanel" Visibility="Collapsed" Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Button Grid.Row="0" Click="BackToCollections_Click" Margin="0,0,0,10" Padding="5">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <SymbolIcon Symbol="Back"/>
+                                <TextBlock Text="Collections"/>
                             </StackPanel>
-                        </DataTemplate>
-                    </GridView.ItemTemplate>
-                </GridView>
-            </Grid>
+                        </Button>
 
-            <Grid x:Name="ObjetsPanel" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="1" x:Name="CollectionTitleTextBlock" Text="Nom Collection" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,10" HorizontalAlignment="Center"/>
 
-                <Button Grid.Row="0" Click="BackToCollections_Click" Margin="0,0,0,10" Padding="5">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <SymbolIcon Symbol="Back"/>
-                        <TextBlock Text="Collections"/>
-                    </StackPanel>
-                </Button>
-
-                <TextBlock Grid.Row="1" x:Name="CollectionTitleTextBlock" Text="Nom Collection" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,10" HorizontalAlignment="Center"/>
-
-                <GridView Grid.Row="2" x:Name="ObjetsGridView">
-                    <GridView.ItemTemplate>
-                        <DataTemplate x:DataType="modeles_3:CollectionObject">
-                            <StackPanel Width="80" Margin="5" Spacing="4">
-                                <Image Source="{x:Bind ImageUrl}" Width="60" Height="60" Stretch="UniformToFill"/>
-                                <TextBlock Text="{x:Bind Name}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </GridView.ItemTemplate>
-                </GridView>
-            </Grid>
-        </Grid>
+                        <GridView Grid.Row="2" x:Name="ObjetsGridView">
+                            <GridView.ItemTemplate>
+                                <DataTemplate x:DataType="modeles_3:CollectionObject">
+                                    <StackPanel Width="80" Margin="5" Spacing="4">
+                                        <Image Source="{x:Bind ImageUrl}" Width="60" Height="60" Stretch="UniformToFill"/>
+                                        <TextBlock Text="{x:Bind Name}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                        </GridView>
+                    </Grid>
+                </Grid>
+            </SplitView.Pane>
+        </SplitView>
     </Grid>
 </Page>
