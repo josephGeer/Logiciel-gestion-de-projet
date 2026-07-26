@@ -37,7 +37,7 @@ namespace app_test.Pages
             return JsonSerializer.Deserialize<Projet>(json, options);
         }
 
-        private async Task GetAllProjects()
+        private async void GetAllProjects()
         {
             // 1. On utilise Environment au lieu de ApplicationData
             string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -49,7 +49,6 @@ namespace app_test.Pages
                 return;
             }
 
-            // 2. On vide la liste avant de la re-remplir pour éviter les doublons à l'écran
             Projets.Clear();
 
             string[] files = Directory.GetFiles(dossier, "*.json");

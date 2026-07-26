@@ -24,8 +24,8 @@
             IsBackButtonVisible="Auto">
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Projets" Tag="Projets"/>
-                <NavigationViewItem Content="Paramètres" Tag="Parametres"/>
-                <NavigationViewItem Content="On verra" Tag="onVerra"/>
+                <!--<NavigationViewItem Content="Paramètres" Tag="Parametres"/>-->
+                <!--<NavigationViewItem Content="On verra" -->
             </NavigationView.MenuItems>
 
             <Frame x:Name="ContentFrame"/>

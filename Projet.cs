@@ -31,6 +31,10 @@ namespace app_test
         public DateTime Deadline { get => _deadLine; set => SetProperty(ref _deadLine, value); }
          
         public ObservableCollection<Item> Items { get; set; }
+        public ObservableCollection<ProjectTask> Tasks { get; set; }
+        public ObservableCollection<ProjectTask> TasksHistory { get; set; }
+
+
 
         public Projet(string Name, string Description, DateTime Deadline)
         {
@@ -38,7 +42,8 @@ namespace app_test
             this.Description = Description;
             this.Deadline = Deadline;
             Items = new ObservableCollection<Item>();
-
+            Tasks = new ObservableCollection<ProjectTask>();
+            TasksHistory = new ObservableCollection<ProjectTask>();
         }
 
         public Projet()
@@ -47,7 +52,10 @@ namespace app_test
             Description = "basique";
             Deadline = DateTime.MinValue;
             Items = new ObservableCollection<Item>();
+            Tasks = new ObservableCollection<ProjectTask>();
+            TasksHistory = new ObservableCollection<ProjectTask>();
         }
+
 
         public override string ToString()
         {
@@ -66,10 +74,7 @@ namespace app_test
         {
             try
             {
-                // 1. On récupère le chemin du dossier classique de Windows (C:\Users\TonNom\AppData\Local)
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-                // 2. On crée un dossier au nom de ton application pour ne pas tout mélanger, puis tes sous-dossiers
                 string dossier = Path.Combine(localAppData, "MonAppTest", "BDD", "Projet");
 
                 if (!Directory.Exists(dossier))
@@ -77,7 +82,6 @@ namespace app_test
                     Directory.CreateDirectory(dossier);
                 }
 
-                // La suite ne change pas !
                 string fileName = projet.Name + ".json";
                 string cheminComplet = Path.Combine(dossier, fileName);
 

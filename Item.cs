@@ -13,8 +13,7 @@ namespace app_test
     //Permet de déclarer tout les types pris en charge,
     [JsonDerivedType(typeof(Texte), typeDiscriminator: "texte")]
     [JsonDerivedType(typeof(Items.Image), typeDiscriminator: "image")]
-    [JsonDerivedType(typeof(Video), typeDiscriminator: "video")]
-    [JsonDerivedType(typeof(Audio), typeDiscriminator: "audio")]
+    [JsonDerivedType(typeof(Media), typeDiscriminator: "media")]
     [JsonDerivedType(typeof(Dessin), typeDiscriminator: "dessin")]
     public class Item
     {

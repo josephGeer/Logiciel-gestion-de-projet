@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 
 namespace app_test.Items
 {
-    public class Audio : Item
+    internal class Media : Item
     {
-        public Audio(string source) : base(source)
+
+        public Media(string source) : base(source)
         {
 
         }
 
-        public Audio() : base()
+        public Media() : base()
         {
         }
     }

@@ -9,8 +9,7 @@ namespace app_test.Pages
         public DataTemplate TexteTemplate { get; set; }
         public DataTemplate DessinTemplate { get; set; }
         public DataTemplate ImageTemplate { get; set; }
-        public DataTemplate VideoTemplate { get; set; }
-        public DataTemplate AudioTemplate { get; set; }
+        public DataTemplate MediaTemplate { get; set; }
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
@@ -19,8 +18,7 @@ namespace app_test.Pages
                 Texte => TexteTemplate,
                 Dessin => DessinTemplate,
                 Items.Image => ImageTemplate,
-                Video => VideoTemplate,
-                Audio => AudioTemplate,
+                Media => MediaTemplate,
                 _ => base.SelectTemplateCore(item)
             };
         }

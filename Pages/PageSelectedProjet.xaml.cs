@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -25,6 +26,7 @@ namespace app_test.Pages
     public sealed partial class PageSelectedProjet : Page, INotifyPropertyChanged
     {
         private static readonly HttpClient _httpClient = new HttpClient();
+        public Array PriorityOptions { get; } = Enum.GetValues(typeof(PriorityList));
 
         private Projet _SelectedProjet;
         public Projet SelectedProjet
@@ -32,9 +34,6 @@ namespace app_test.Pages
             get => _SelectedProjet;
             set { _SelectedProjet = value; OnPropertyChanged(nameof(SelectedProjet)); }
         }
-
-        public ObservableCollection<Collection.Collection> ToutesLesCollections { get; set; }
-            = new ObservableCollection<Collection.Collection>();
 
         public PageSelectedProjet()
         {
@@ -52,6 +51,8 @@ namespace app_test.Pages
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            _taskTimer?.Stop();
+
             if (e.Parameter is Projet projet_1 && projet_1 != null)
             {
                 SelectedProjet = projet_1;
@@ -67,28 +68,13 @@ namespace app_test.Pages
                     }
                 }
             }
-
-            await ChargerCollectionsAsync();
         }
 
-        private async Task ChargerCollectionsAsync()
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            try
-            {
-                var response = await _httpClient.GetFromJsonAsync<LaravelResponse<List<Collection.Collection>>>(
-                    "http://clicker-game.test:8080/api/collections");
-
-                if (response?.Data != null)
-                {
-                    ToutesLesCollections.Clear();
-                    foreach (var col in response.Data)
-                        ToutesLesCollections.Add(col);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Erreur API : {ex.Message}");
-            }
+            base.OnNavigatedFrom(e);
+            _taskTimer?.Stop();
+            _taskTimer = null;
         }
 
         public static Windows.Media.Playback.IMediaPlaybackSource MettreEnMediaSource(string cheminFichier)
@@ -131,9 +117,9 @@ namespace app_test.Pages
             await Projet.CreateProjetFileJSON(SelectedProjet);
         }
 
-        private async void CreateItemVideo_Click(object sender, RoutedEventArgs e)
+        private async void CreateItemMedia_Click(object sender, RoutedEventArgs e)
         {
-            Item item = new Video("en_cours");
+            Item item = new Media("en_cours");
             SelectedProjet.Items.Add(item);
             await Projet.CreateProjetFileJSON(SelectedProjet);
         }
@@ -141,13 +127,6 @@ namespace app_test.Pages
         private async void CreateItemDessin_Click(object sender, RoutedEventArgs e)
         {
             Item item = new Dessin("en_cours");
-            SelectedProjet.Items.Add(item);
-            await Projet.CreateProjetFileJSON(SelectedProjet);
-        }
-
-        private async void CreateItemAudio_Click(object sender, RoutedEventArgs e)
-        {
-            Item item = new Audio("en_cours");
             SelectedProjet.Items.Add(item);
             await Projet.CreateProjetFileJSON(SelectedProjet);
         }
@@ -271,6 +250,7 @@ namespace app_test.Pages
             CollectionsPanel.Visibility = Visibility.Visible;
         }
 
+        //Gestion du resize persistant des items
         private void Sizer_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             e.Handled = true;
@@ -279,41 +259,153 @@ namespace app_test.Pages
         // Pour gérer la sauvegarde du redimensionnement des items de façon pérenne
         private bool _isRestoringSize;
 
-private void ItemTarget_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
-{
-    if (args.NewValue is Item item)
-    {
-        _isRestoringSize = true;
+        private void ItemTarget_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+        {
+            if (args.NewValue is Item item)
+            {
+                _isRestoringSize = true;
 
-        if (item.Largeur.HasValue)
-            sender.Width = item.Largeur.Value;
-        else
-            sender.ClearValue(FrameworkElement.WidthProperty);
+                if (item.Largeur.HasValue)
+                    sender.Width = item.Largeur.Value;
+                else
+                    sender.ClearValue(FrameworkElement.WidthProperty);
 
-        if (item.Hauteur.HasValue)
-            sender.Height = item.Hauteur.Value;
-        else
-            sender.ClearValue(FrameworkElement.HeightProperty);
+                if (item.Hauteur.HasValue)
+                    sender.Height = item.Hauteur.Value;
+                else
+                    sender.ClearValue(FrameworkElement.HeightProperty);
 
-        _isRestoringSize = false;
+                _isRestoringSize = false;
+            }
+        }
+
+        private void ItemTarget_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_isRestoringSize) return;
+
+            if (sender is FrameworkElement target && target.DataContext is Item item)
+            {
+                item.Largeur = e.NewSize.Width;
+                item.Hauteur = e.NewSize.Height;
+            }
+        }
+
+        //Task Section
+        private async void TaskComplete_Click(object sender, RoutedEventArgs e)
+        {
+            var checkBox = sender as CheckBox;
+            if (checkBox == null) return;
+
+            var currentTask = checkBox.DataContext as ProjectTask;
+            if (currentTask == null) return;
+
+            if (SelectedProjet?.Tasks != null && SelectedProjet.Tasks.Contains(currentTask))
+            {
+                SelectedProjet.TasksHistory.Add(currentTask);
+                SelectedProjet.Tasks.Remove(currentTask);
+                await Projet.CreateProjetFileJSON(SelectedProjet);
+            }
+        }
+        private async void CreateTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(TaskContent_TextBox.Text))
+            {
+                return;
+            }
+            string content = TaskContent_TextBox.Text;
+
+            if (double.IsNaN(TaskDeadline_TextBox.Value))
+            {
+                return;
+            }
+
+            int days = (int)TaskDeadline_TextBox.Value;
+            DateTime deadline = DateTime.Now.AddDays(days);
+
+            PriorityList priority = PriorityList.Low;
+            if (TaskPriority_ComboBox.SelectedItem != null)
+            {
+                priority = (PriorityList)TaskPriority_ComboBox.SelectedItem;
+            }
+
+            double time = double.IsNaN(TimeTask_TextBox.Value) ? 0 : TimeTask_TextBox.Value;
+
+            if (SelectedProjet != null)
+            {
+                ProjectTask newTask;
+
+                if (time != 0)
+                {
+                    newTask = new ProjectTask(content, priority, time, deadline);
+                }
+                else
+                {
+                    newTask = new ProjectTask(content, priority, deadline);
+                }
+                SelectedProjet.Tasks.Add(newTask);
+                await Projet.CreateProjetFileJSON(SelectedProjet);
+                TaskContent_TextBox.Text = string.Empty;
+
+                TaskPriority_ComboBox.SelectedItem = null;
+                TaskDeadline_TextBox.Value = double.NaN;
+                TimeTask_TextBox.Value = double.NaN;
+            }
+        }
+
+        // Timer début 
+        private DispatcherTimer _taskTimer;
+
+        private void InitTaskTimer()
+        {
+            _taskTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _taskTimer.Tick += TaskTimer_Tick;
+            _taskTimer.Start();
+        }
+
+        private void TaskTimer_Tick(object sender, object e)
+        {
+            if (SelectedProjet?.Tasks == null) return;
+
+            foreach (var task in SelectedProjet.Tasks)
+            {
+                if (task.IsRunning && task.RemainingTime > TimeSpan.Zero)
+                {
+                    var before = task.RemainingTime;
+                    task.RemainingTime -= TimeSpan.FromSeconds(1);
+    
+                    if (task.RemainingTime <= TimeSpan.Zero)
+                    {
+                        task.RemainingTime = TimeSpan.Zero;
+                        task.IsRunning = false;
+                    }
+                }
+            }
+        }
+
+        private void PlayPauseTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is ProjectTask task)
+            {
+                task.IsRunning = !task.IsRunning;
+            }
+        }
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_taskTimer == null)
+            {
+                InitTaskTimer();
+                Debug.WriteLine("[Init] Page_Loaded - InitTaskTimer appelé");
+            }
+        }
     }
-}
+        
 
-private void ItemTarget_SizeChanged(object sender, SizeChangedEventArgs e)
-{
-    if (_isRestoringSize) return;
-
-    if (sender is FrameworkElement target && target.DataContext is Item item)
-    {
-        item.Largeur = e.NewSize.Width;
-        item.Hauteur = e.NewSize.Height;
-    }
-}
-    }
-
-    public class LaravelResponse<T>
-    {
-        [JsonPropertyName("data")]
-        public T Data { get; set; }
-    }
-}
+            public class LaravelResponse<T>
+            {
+                [JsonPropertyName("data")]
+                public T Data { get; set; }
+            }
+ }
