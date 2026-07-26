@@ -243,7 +243,7 @@
                 </DropDownButton>
             </StackPanel>
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
-                <Button Content="Tasks" HorizontalAlignment="Center" Click="OpenTask_Click">
+                <Button Content="Tasks" HorizontalAlignment="Center">
                     <Button.Flyout>
                         <Flyout>
                             <Flyout.FlyoutPresenterStyle>
