@@ -9,6 +9,7 @@ namespace app_test.Utilitaire
         {
             bool isRunning = value is bool b && b;
             return isRunning ? "\uE769" : "\uE768";
+
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

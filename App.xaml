@@ -8,8 +8,8 @@
     <Application.Resources>
         <ResourceDictionary>
             <modeles_4:PriorityToColorConverter x:Key="PriorityColorConverter" />
-            <modeles_4:NumberTaskToProgressBar x:Key="NumberTaskToProgressBar" />
             <modeles_4:PlayPauseIconConverter x:Key="PlayPauseIconConverter" />
+            <modeles_4:PlayButtonConverter x:Key="PlayButtonConverter" />
 
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />

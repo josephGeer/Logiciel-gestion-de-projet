@@ -29,7 +29,6 @@
 
             <!--  Texte Template-->
             <DataTemplate x:Key="TexteTemplate" x:DataType="modeles_2:Texte">
-            
                 <Grid CanDrag="False" HorizontalAlignment="Center" Margin="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -48,8 +47,13 @@
                          DataContextChanged="ItemTarget_DataContextChanged"
                          SizeChanged="ItemTarget_SizeChanged"/>
 
-                    <Button Grid.Column="1" Click="DeleteItem_Click" Margin="10,5,0,0" Background="Transparent">
-                        <SymbolIcon Symbol="Delete" Foreground="Red"/>
+                    <Button Grid.Column="1" Content="Edit" Margin="10,5,0,0" Background="Transparent">
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text=" Delete" Icon="Delete" Click="DeleteItem_Click"> </MenuFlyoutItem>
+                                <MenuFlyoutItem Text=" Copy" Icon="Copy" Click="CopyText_Click"></MenuFlyoutItem>
+                            </MenuFlyout>
+                        </Button.Flyout>
                     </Button>
 
                     <controls:ContentSizer Grid.Row="0"
@@ -61,12 +65,6 @@
                     <controls:ContentSizer Grid.Row="0"
                         Orientation="Vertical"
                         HorizontalAlignment="Right"
-                        TargetControl="{Binding ElementName=TexteBox}"
-                        PointerPressed="Sizer_PointerPressed"/>
-
-                    <controls:ContentSizer Grid.Row="0"
-                        Orientation="Vertical"
-                        HorizontalAlignment="Left"
                         TargetControl="{Binding ElementName=TexteBox}"
                         PointerPressed="Sizer_PointerPressed"/>
                 </Grid>
@@ -102,12 +100,6 @@
                                HorizontalAlignment="Right"
                                TargetControl="{Binding ElementName=CibleDessin}"
                                PointerPressed="Sizer_PointerPressed" />
-
-                    <controls:ContentSizer Grid.Column="0"
-                               Orientation="Vertical"
-                               HorizontalAlignment="Left"
-                               TargetControl="{Binding ElementName=CibleDessin}"
-                               PointerPressed="Sizer_PointerPressed" />
                 </Grid>
             </DataTemplate>
 
@@ -134,12 +126,6 @@
                         <controls:ContentSizer
                             Orientation="Vertical"
                             HorizontalAlignment="Right"
-                            TargetControl="{Binding ElementName=TargetMedia}"
-                            PointerPressed="Sizer_PointerPressed" />
-
-                        <controls:ContentSizer
-                            Orientation="Vertical"
-                            HorizontalAlignment="Left"
                             TargetControl="{Binding ElementName=TargetMedia}"
                             PointerPressed="Sizer_PointerPressed" />
                     </Grid>
@@ -177,12 +163,6 @@
                             HorizontalAlignment="Right"
                             TargetControl="{Binding ElementName=TargetMedia}"
                             PointerPressed="Sizer_PointerPressed" />
-
-                        <controls:ContentSizer
-                            Orientation="Vertical"
-                            HorizontalAlignment="Left"
-                            TargetControl="{Binding ElementName=TargetMedia}"
-                            PointerPressed="Sizer_PointerPressed" />
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0" Spacing="10">
@@ -196,17 +176,27 @@
 
             <DataTemplate x:Key="TaskTemplate" x:DataType="modeles:ProjectTask">
                 <StackPanel Orientation="Horizontal">
-                    <TextBox Text="{x:Bind Content}" Margin="0,0, 10, 0"></TextBox>
+                    <TextBox Text="{x:Bind Content}" Width="500" TextWrapping="Wrap" Margin="0,0, 10, 0"></TextBox>
                     <TextBlock Text="{x:Bind TimeLeft()}" Margin="0,0, 15, 0" VerticalAlignment="Center"/>
                     <FontIcon Glyph="&#xEA3A;" 
                               Foreground="{x:Bind Priority, Converter={StaticResource PriorityColorConverter}}" 
                               Margin="0, 0, 15, 0"
                               />
                     <CheckBox Click="TaskComplete_Click" BorderBrush="Red" Margin="0, 0, 10, 0"> </CheckBox>
-                    <Button Margin="0,0,10,0" Click="PlayPauseTask_Click" Tag="{x:Bind}">
-                        <FontIcon Glyph="{x:Bind IsRunning, Mode=OneWay, Converter={StaticResource PlayPauseIconConverter}}"/>
-                    </Button>
-                    <TextBlock Text="{x:Bind RemainingTimeDisplay, Mode=OneWay}" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal"
+                        Visibility="{x:Bind time, Mode=OneWay, Converter={StaticResource PlayButtonConverter}}">
+
+                        <Button Margin="0,0,10,0" 
+                            Click="PlayPauseTask_Click" 
+                            Tag="{x:Bind}">
+                            <FontIcon Glyph="{x:Bind IsRunning, Mode=OneWay, Converter={StaticResource PlayPauseIconConverter}}"/>
+                        </Button>
+
+                        <TextBlock Text="{x:Bind RemainingTimeDisplay, Mode=OneWay}" 
+                           Margin="0,0,15,0" 
+                           VerticalAlignment="Center"/>
+
+                    </StackPanel>
                 </StackPanel>
             </DataTemplate>
             
@@ -253,30 +243,44 @@
                             </Flyout.FlyoutPresenterStyle>
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="20">
-                                    <TextBox x:Name="TaskContent_TextBox"  Header="Task" PlaceholderText="Put the content of the task you want to accomplish" Width="300"></TextBox>
+                                    <TextBox x:Name="TaskContent_TextBox" Header="Task" PlaceholderText="Put the content of the task you want to accomplish" Width="300"></TextBox>
                                     <NumberBox x:Name="TaskDeadline_TextBox" Header="Deadline" PlaceholderText="(days)" Width="60"></NumberBox>
                                     <ComboBox x:Name="TaskPriority_ComboBox" 
-                                          Header="Priority" 
-                                          PlaceholderText="Pick a Priority" 
-                                          Width="140"
-                                          ItemsSource="{x:Bind PriorityOptions}" />
+                              Header="Priority" 
+                              PlaceholderText="Pick a Priority" 
+                              Width="140"
+                              ItemsSource="{x:Bind PriorityOptions}" />
                                     <NumberBox x:Name="TimeTask_TextBox" Header="Time" PlaceholderText="Hours spend" Width="100"></NumberBox>
                                     <Button Click="CreateTask_Click" Content="Create Task" />
-
-
                                 </StackPanel>
                                 <ListView x:Name="TaskList" 
-                                          ItemsSource="{x:Bind SelectedProjet.Tasks, Mode=OneWay, FallbackValue={x:Null}}"
-                                          ItemTemplate="{StaticResource TaskTemplate}"
-                                          Margin="0, 15, 0, 0"
-                                          >
-
+                              ItemsSource="{x:Bind SelectedProjet.ActiveTasks, Mode=OneWay, FallbackValue={x:Null}}"
+                              ItemTemplate="{StaticResource TaskTemplate}"
+                              Margin="0, 15, 0, 0">
                                 </ListView>
                             </StackPanel>
                         </Flyout>
                     </Button.Flyout>
                 </Button>
-                <ProgressBar Width="130" Value="{x:Bind SelectedProjet, Converter={StaticResource NumberTaskToProgressBar}}"/>
+
+                <Button Content="History" HorizontalAlignment="Center">
+                    <Button.Flyout>
+                        <Flyout>
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="MaxWidth" Value="1200" />
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <ListView x:Name="HistoryList" 
+                          ItemsSource="{x:Bind SelectedProjet.CompletedTasks, Mode=OneWay, FallbackValue={x:Null}}"
+                          ItemTemplate="{StaticResource TaskTemplate}"
+                          Margin="0, 15, 0, 0">
+                            </ListView>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <ProgressBar Width="130" Value="{x:Bind SelectedProjet.ProgressPercentage, Mode=OneWay}"/>
             </StackPanel>
 
             <ToggleButton Grid.Column="1" 
@@ -308,7 +312,8 @@
                     CanReorderItems="True"
                     AllowDrop="True"
                     CanDragItems="True"
-                    DragItemsCompleted="ItemGridView_DragItemsCompleted">
+                    >
+                    
                 </ListView>
             </SplitView.Content>
 

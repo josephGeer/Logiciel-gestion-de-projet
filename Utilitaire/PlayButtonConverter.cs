@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
@@ -9,25 +10,19 @@ using System.Threading.Tasks;
 
 namespace app_test.Utilitaire
 {
-    public class NumberTaskToProgressBar: IValueConverter
+    public class PlayButtonConverter : IValueConverter
     {
 
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is Projet project)
+            if (value is double d)
             {
-                int number_Task = project.Tasks?.Count() ?? 0;
-                int number_TaskDone = project.TasksHistory?.Count() ?? 0;
-                int total = number_Task + number_TaskDone;
-
-                if (total == 0)
-                    return 0.0;
-
-                double progress_bar = (number_TaskDone * 100.0) / total;
-                return progress_bar;
+                return  d > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
-
-            return 100.0;
+            else
+            {
+                return Visibility.Collapsed;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

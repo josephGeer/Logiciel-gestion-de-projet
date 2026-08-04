@@ -20,9 +20,23 @@ namespace app_test
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Content { get; set; }
         public PriorityList Priority { get; set; }
-        private double time { get; set; }
+        public double time { get; set; }
         private bool isDone { get; set; }
         private DateTime DeadLine { get; set; }
+
+        private bool _isComplete;
+        public bool IsComplete
+        {
+            get => _isComplete;
+            set
+            {
+                if (_isComplete != value)
+                {
+                    _isComplete = value;
+                    OnPropertyChanged(nameof(IsComplete));
+                }
+            }
+        }
 
         private bool _isRunning;
         public bool IsRunning

@@ -17,6 +17,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Media.Core;
 using Windows.Storage;
 using Image = Microsoft.UI.Xaml.Controls.Image;
@@ -104,7 +105,6 @@ namespace app_test.Pages
 
             item.Source = cheminComplet;
             SelectedProjet.Items.Add(item);
-            await Projet.CreateProjetFileJSON(SelectedProjet);
             File.Create(cheminComplet).Dispose();
 
             Debug.WriteLine("Fichier créé : " + cheminComplet);
@@ -114,21 +114,18 @@ namespace app_test.Pages
         {
             Item item = new Items.Image("en_cours");
             SelectedProjet.Items.Add(item);
-            await Projet.CreateProjetFileJSON(SelectedProjet);
         }
 
         private async void CreateItemMedia_Click(object sender, RoutedEventArgs e)
         {
             Item item = new Media("en_cours");
             SelectedProjet.Items.Add(item);
-            await Projet.CreateProjetFileJSON(SelectedProjet);
         }
 
         private async void CreateItemDessin_Click(object sender, RoutedEventArgs e)
         {
             Item item = new Dessin("en_cours");
             SelectedProjet.Items.Add(item);
-            await Projet.CreateProjetFileJSON(SelectedProjet);
         }
 
         private async void OpenFileButton_Click(object sender, RoutedEventArgs e)
@@ -160,7 +157,6 @@ namespace app_test.Pages
                     string pathDest = Path.Combine(dossierItems, $"{CurrentItem.Id}{Path.GetExtension(file.Path)}");
                     File.Copy(file.Path, pathDest, true);
                     CurrentItem.Source = pathDest;
-                    await Projet.CreateProjetFileJSON(SelectedProjet);
                     break;
 
                 case Image image:
@@ -172,7 +168,6 @@ namespace app_test.Pages
                     string pathDestImg = Path.Combine(dossierItems, $"{CurrentItem.Id}{Path.GetExtension(file.Path)}");
                     File.Copy(file.Path, pathDestImg, true);
                     CurrentItem.Source = pathDestImg;
-                    await Projet.CreateProjetFileJSON(SelectedProjet);
                     break;
 
                 default:
@@ -186,21 +181,7 @@ namespace app_test.Pages
             args.Handled = true;
             if (SelectedProjet?.Items == null) return;
 
-            try
-            {
-                foreach (var item in SelectedProjet.Items)
-                {
-                    if (item is Texte itemTexte)
-                        await File.WriteAllTextAsync(itemTexte.Source, itemTexte.Contenu);
-                }
-
-                await Projet.CreateProjetFileJSON(SelectedProjet);
-                Debug.WriteLine("Sauvegarde OK.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Erreur sauvegarde : {ex.Message}");
-            }
+            SauvegarderProjetAsync();
         }
 
         private async void DeleteItem_Click(object sender, RoutedEventArgs e)
@@ -223,14 +204,6 @@ namespace app_test.Pages
 
             if (SelectedProjet?.Items != null && SelectedProjet.Items.Contains(currentItem))
                 SelectedProjet.Items.Remove(currentItem);
-
-            await Projet.CreateProjetFileJSON(SelectedProjet);
-        }
-
-        private async void ItemGridView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
-        {
-            if (SelectedProjet != null)
-                await Projet.CreateProjetFileJSON(SelectedProjet);
         }
 
         private void CollectionsGridView_ItemClick(object sender, ItemClickEventArgs e)
@@ -244,10 +217,38 @@ namespace app_test.Pages
             ObjetsPanel.Visibility = Visibility.Visible;
         }
 
-        private void BackToCollections_Click(object sender, RoutedEventArgs e)
+        private async void BackToCollections_Click(object sender, RoutedEventArgs e)
         {
-            ObjetsPanel.Visibility = Visibility.Collapsed;
-            CollectionsPanel.Visibility = Visibility.Visible;
+            if (Frame.CanGoBack)
+            {
+                Frame.GoBack();
+            }
+        }
+
+        private async Task SauvegarderProjetAsync()
+        {
+            if (SelectedProjet == null) return;
+
+            try
+            {
+                if (SelectedProjet.Items != null)
+                {
+                    foreach (var item in SelectedProjet.Items)
+                    {
+                        if (item is Texte itemTexte && !string.IsNullOrEmpty(itemTexte.Source))
+                        {
+                            await File.WriteAllTextAsync(itemTexte.Source, itemTexte.Contenu ?? string.Empty);
+                        }
+                    }
+                }
+
+                await Projet.CreateProjetFileJSON(SelectedProjet);
+                Debug.WriteLine("Sauvegarde complète effectuée.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur lors de la sauvegarde : {ex.Message}");
+            }
         }
 
         //Gestion du resize persistant des items
@@ -291,21 +292,14 @@ namespace app_test.Pages
         }
 
         //Task Section
-        private async void TaskComplete_Click(object sender, RoutedEventArgs e)
+        private void TaskComplete_Click(object sender, RoutedEventArgs e)
         {
-            var checkBox = sender as CheckBox;
-            if (checkBox == null) return;
-
-            var currentTask = checkBox.DataContext as ProjectTask;
-            if (currentTask == null) return;
-
-            if (SelectedProjet?.Tasks != null && SelectedProjet.Tasks.Contains(currentTask))
+            if (sender is CheckBox checkBox && checkBox.DataContext is ProjectTask task)
             {
-                SelectedProjet.TasksHistory.Add(currentTask);
-                SelectedProjet.Tasks.Remove(currentTask);
-                await Projet.CreateProjetFileJSON(SelectedProjet);
+                task.IsComplete = true;
             }
         }
+        
         private async void CreateTask_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TaskContent_TextBox.Text))
@@ -343,9 +337,7 @@ namespace app_test.Pages
                     newTask = new ProjectTask(content, priority, deadline);
                 }
                 SelectedProjet.Tasks.Add(newTask);
-                await Projet.CreateProjetFileJSON(SelectedProjet);
                 TaskContent_TextBox.Text = string.Empty;
-
                 TaskPriority_ComboBox.SelectedItem = null;
                 TaskDeadline_TextBox.Value = double.NaN;
                 TimeTask_TextBox.Value = double.NaN;
@@ -398,6 +390,20 @@ namespace app_test.Pages
             {
                 InitTaskTimer();
                 Debug.WriteLine("[Init] Page_Loaded - InitTaskTimer appelé");
+            }
+        }
+
+        private void CopyText_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem item && item.DataContext is Texte texteCourant)
+            {
+                // Récuparation du texte en utilisant le DataContext de l'item
+                string texteACopier = texteCourant.Contenu ?? string.Empty;
+
+                // Copié contenu dans presse papié windows
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(texteACopier);
+                Clipboard.SetContent(dataPackage);
             }
         }
     }
